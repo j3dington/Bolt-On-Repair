@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parts Tracker - Bolt-On Station</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    // ============================================================================
+    // CONSTANTS & CONFIGURATION
+    // ============================================================================
+    
+    const SITE_PASSWORD = 'CompassTesting2025!';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMtoN6T61-FQU9fft9BQ0MIfjuHjl855UcBimt8lnZZmh6QFYdhhFPRRRIFhFF0WvBdw/exec';
+
+    // Valid parts that can be scanned
+    const VALID_PARTS = [
+      'Beagle Bone Control Boards',
+      'AM Logic Control Boards',
+      'Xilinx 7007 Control Boards',
+      '4V 10 Control Boards',
+      '6V10 Control Boards',
+      'APW 12 PSU',
+      'APW 121215 a PSU',
+      'APW 121215 b PSU',
+      'APW 121215 c PSU',
+      'APW 121215 d PSU',
+      'APW 121215 e PSU',
+      'APW 121215 f PSU',
+      'APW 121417 a PSU',
+      'APW 121417 b PSU',
+      'AM Hashboard Ribbon Cable',
+      'WM Adapter Plate Cables',
+      'Fan Adapter Cables',
+      'Fan Extention Cables',
+      'AM PSU Power Cables',
+      'AM PSU Data/ Cables',
+      'PSU Fan Grill Screws',
+      'Miner Fan Grill Screws - silver',
+      'Miner Fan Grill Screws - black',
+      'Bus Bar Screws',
+      'Small Miner Screws',
+      'Chassis Screws',
+      '60 mm Fans',
+      '120mm Fans 4 pin (Antminer)',
+      '120mm Fans Barrel (Antminer)',
+      '140 mm Fans (Whatsminer)',
+      'S21 Fans',
+      'WM P222B',
+      'WM P221B',
+      'WM P221C',
+      'WM P222C',
+      '120mm Fan Grills (Black)',
+      '140mm Fan Grills (Silver)',
+      '140mm Fan Grills (Black)',
+      '60mm Fan Grills',
+      'PSU Universal'
+    ];
+
+    // Parts that need quantity input (screws, fans, and smaller items)
+    const PARTS_NEEDING_QUANTITY = [
+      'PSU Fan Grill Screws',
+      'Miner Fan Grill Screws - silver',
+      'Miner Fan Grill Screws - black',
+      'Bus Bar Screws',
+      'Small Miner Screws',
+      'Chassis Screws',
+      '60 mm Fans',
+      '120mm Fans 4 pin (Antminer)',
+      '120mm Fans Barrel (Antminer)',
+      '140 mm Fans (Whatsminer)',
+    ];
+
+    // Valid technician names for submission
+    const VALID_NAMES = [
+      'James',
+      'Josh',
+      'Junior',
+      'Nikolai',
+      'Rafa',
+      'Kyle',
+      'Christian'
+    ];
+
+    // ============================================================================
+    // HELPER FUNCTIONS
+    // ============================================================================
+    
+    // Sound Functions
+    // ----------------------------------------------------------------------------
+    
+    function playSuccessSound() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+    }
+
+    function playErrorSound() {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 300;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    }
+
+    // Validation Functions
+    // ----------------------------------------------------------------------------
+    
+    function isValidPart(partName) {
+      return VALID_PARTS.includes(partName);
+    }
+
+    function needsQuantity(partName) {
+      return PARTS_NEEDING_QUANTITY.includes(partName);
+    }
+
+    function isValidTechName(name) {
+      return VALID_NAMES.includes(name);
+    }
+
+    // ============================================================================
+    // LOGIN COMPONENT
+    // ============================================================================
+    
+    function LoginScreen({ onLogin }) {
+      const [password, setPassword] = useState('');
+      const [error, setError] = useState('');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (password === SITE_PASSWORD) {
+          onLogin();
+        } else {
+          setError('Incorrect password. Try again.');
+          setPassword('');
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
+          <div className="bg-slate-800 rounded-lg shadow-2xl p-8 w-full max-w-md border border-slate-700">
+            <div className="text-center mb-6">
+              <h1 className="text-3xl font-bold text-white mb-2">🔒 Parts Tracker</h1>
+              <p className="text-slate-400">Enter password to access</p>
+            </div>
+            
+            <form onSubmit={handleSubmit}>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                className="w-full p-4 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg mb-4"
+                autoFocus
+              />
+              
+              {error && (
+                <div className="bg-red-900 border border-red-500 rounded p-3 mb-4">
+                  <p className="text-red-100 text-sm">{error}</p>
+                </div>
+              )}
+              
+              <button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-4 rounded transition-colors text-lg"
+              >
+                🔓 Unlock Tracker
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================================================
+    // SESSION SETUP COMPONENT
+    // Handles: Tech Name → Station selection (both locked for session)
+    // ============================================================================
+    
+    function SessionSetup({ onSessionReady }) {
+      const [techName, setTechName] = useState('');
+      const [station, setStation] = useState('');
+      const [scanInput, setScanInput] = useState('');
+      const [error, setError] = useState('');
+      const inputRef = useRef(null);
+
+      useEffect(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, [techName]);
+
+      const handleScan = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const value = scanInput.trim();
+          
+         // Step 1: Scan tech name (starts with $)
+          if (!techName) {
+            if (value.startsWith('$')) {
+              // Remove leading $ and trailing $ if present
+              let scannedName = value.substring(1).trim();
+              if (scannedName.endsWith('$')) {
+                scannedName = scannedName.slice(0, -1).trim();
+              }
+              
+              console.log('Extracted name:', scannedName);
+              
+              // Find matching name (case-insensitive)
+              const matchingName = VALID_NAMES.find(
+                validName => validName.toLowerCase() === scannedName.toLowerCase()
+              );
+              
+              if (matchingName) {
+                setTechName(matchingName);
+                setScanInput('');
+                setError('');
+                playSuccessSound();
+              } else {
+                setError(`Invalid name "${scannedName}". Valid: ${VALID_NAMES.join(', ')}`);
+                setScanInput('');
+                playErrorSound();
+              }
+            } else {
+              setError('Scan a name with $ (e.g., $Josh or $Josh$)');
+              setScanInput('');
+              playErrorSound();
+            }
+          }
+          // Step 2: Scan station QR code or type 1/2
+          else if (!station) {
+            if (value === 'Bolt-On 1' || value === '1') {
+              setStation('Bolt-On 1');
+              setScanInput('');
+              playSuccessSound();
+              setTimeout(() => onSessionReady('Bolt-On 1', techName), 500);
+            } else if (value === 'Bolt-On 2' || value === '2') {
+              setStation('Bolt-On 2');
+              setScanInput('');
+              playSuccessSound();
+              setTimeout(() => onSessionReady('Bolt-On 2', techName), 500);
+            } else {
+              setError('Invalid station. Scan QR code or type 1 or 2');
+              setScanInput('');
+              playErrorSound();
+            }
+          }
+        }
+      };
+
+      const getCurrentPrompt = () => {
+        if (!techName) return '👤 Scan Your Name (e.g., $Josh)';
+        if (!station) return '🏭 Scan Station QR Code';
+        return 'Setting up session...';
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
+          <div className="bg-slate-800 rounded-lg shadow-2xl p-8 w-full max-w-md border border-slate-700">
+            <div className="text-center mb-6">
+              <h1 className="text-3xl font-bold text-white mb-2">⚙️ Session Setup</h1>
+              <p className="text-slate-400">Set up your work session</p>
+            </div>
+
+            <div className="bg-blue-900 border-2 border-blue-500 rounded-lg p-4 mb-4">
+              <p className="text-blue-100 text-lg font-semibold text-center">{getCurrentPrompt()}</p>
+            </div>
+
+            {error && (
+              <div className="bg-red-900 border border-red-500 rounded p-3 mb-4">
+                <p className="text-red-100 text-sm">{error}</p>
+              </div>
+            )}
+
+            {techName && (
+              <div className="bg-green-900 border border-green-500 rounded p-3 mb-4">
+                <p className="text-green-100 text-sm">✓ Technician: <span className="font-semibold">{techName}</span></p>
+              </div>
+            )}
+
+            <input
+              ref={inputRef}
+              type="text"
+              value={scanInput}
+              onChange={(e) => setScanInput(e.target.value)}
+              onKeyDown={handleScan}
+              placeholder="Scan here..."
+              className="w-full p-4 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg mb-4"
+              autoFocus
+            />
+
+            {techName && !station && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setStation('Bolt-On 1');
+                    playSuccessSound();
+                    setTimeout(() => onSessionReady('Bolt-On 1', techName), 500);
+                  }}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded transition-colors"
+                >
+                  Bolt-On 1
+                </button>
+                <button
+                  onClick={() => {
+                    setStation('Bolt-On 2');
+                    playSuccessSound();
+                    setTimeout(() => onSessionReady('Bolt-On 2', techName), 500);
+                  }}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded transition-colors"
+                >
+                  Bolt-On 2
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================================================
+    // MACHINE ENTRY COMPONENT
+    // Handles: Serial → Parts → Submit (loops per machine)
+    // ============================================================================
+    
+    function MachineEntry({ station, techName, onLogout }) {
+      // Machine-specific state (resets after each submit)
+      const [machineSerial, setMachineSerial] = useState('');
+      const [parts, setParts] = useState([]);
+      const [scanInput, setScanInput] = useState('');
+      
+      // Temporary state for quantity input
+      const [awaitingQuantity, setAwaitingQuantity] = useState(false);
+      const [pendingPart, setPendingPart] = useState('');
+      
+      const [error, setError] = useState('');
+      const [statusMessage, setStatusMessage] = useState('');
+      const [isSubmitting, setIsSubmitting] = useState(false);
+      
+      const inputRef = useRef(null);
+
+      useEffect(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, [machineSerial, awaitingQuantity]);
+
+      const handleScan = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const value = scanInput.trim();
+          
+          // Step 1: Scan machine serial
+          if (!machineSerial) {
+            if (value.length > 0) {
+              setMachineSerial(value);
+              setScanInput('');
+              setStatusMessage('Serial recorded! Scan parts.');
+              playSuccessSound();
+              setTimeout(() => setStatusMessage(''), 2000);
+            } else {
+              setError('Serial number cannot be empty');
+              playErrorSound();
+            }
+          }
+          // Step 2: Handle quantity input (if waiting for one)
+          else if (awaitingQuantity) {
+            const qty = parseInt(value);
+            if (isNaN(qty) || qty < 1) {
+              setError('Please enter a valid quantity (number > 0)');
+              setScanInput('');
+              playErrorSound();
+            } else {
+              addPartToList(pendingPart, qty);
+              setAwaitingQuantity(false);
+              setPendingPart('');
+              setScanInput('');
+              playSuccessSound();
+            }
+          }
+          // Step 3: Scan parts
+          else {
+            if (isValidPart(value)) {
+              if (needsQuantity(value)) {
+                // Ask for quantity
+                setPendingPart(value);
+                setAwaitingQuantity(true);
+                setScanInput('');
+                setError('');
+              } else {
+                // Auto-add with qty 1
+                addPartToList(value, 1);
+                setScanInput('');
+                playSuccessSound();
+              }
+            } else {
+              setError(`Invalid part. Not in parts list.`);
+              setScanInput('');
+              playErrorSound();
+            }
+          }
+        }
+      };
+
+      const addPartToList = (partName, quantity) => {
+        const newPart = {
+          id: Date.now(),
+          part: partName,
+          quantity: quantity
+        };
+        setParts([...parts, newPart]);
+        setStatusMessage(`Added: ${partName} (${quantity})`);
+        setTimeout(() => setStatusMessage(''), 2000);
+      };
+
+      const removePart = (id) => {
+        setParts(parts.filter(p => p.id !== id));
+      };
+
+      const restartMachine = () => {
+        setMachineSerial('');
+        setParts([]);
+        setScanInput('');
+        setAwaitingQuantity(false);
+        setPendingPart('');
+        setError('');
+        setStatusMessage('Machine cleared. Scan new serial.');
+        setTimeout(() => setStatusMessage(''), 2000);
+      };
+
+      const handleSubmit = async () => {
+        if (!machineSerial || parts.length === 0) {
+          setError('Need serial and at least one part to submit');
+          playErrorSound();
+          return;
+        }
+
+        setIsSubmitting(true);
+        setStatusMessage('Submitting to Google Sheets...');
+
+        const submissionData = {
+          secretKey: SITE_PASSWORD,
+          station: station,
+          machineSerial: machineSerial,
+          techName: techName,
+          timestamp: new Date().toISOString(),
+          parts: parts
+        };
+
+        try {
+          const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(submissionData)
+          });
+
+          setStatusMessage('✓ Submitted! Starting next machine...');
+          playSuccessSound();
+          
+          // Reset for next machine
+          setTimeout(() => {
+            setMachineSerial('');
+            setParts([]);
+            setScanInput('');
+            setAwaitingQuantity(false);
+            setPendingPart('');
+            setError('');
+            setIsSubmitting(false);
+            setStatusMessage('');
+          }, 1500);
+
+        } catch (error) {
+          console.error('Submission error:', error);
+          setStatusMessage('⚠️ Error submitting. Check console.');
+          setIsSubmitting(false);
+          playErrorSound();
+        }
+      };
+
+      const getCurrentPrompt = () => {
+        if (!machineSerial) return '📱 Scan Machine Serial Number';
+        if (awaitingQuantity) return `🔢 Enter Quantity for: ${pendingPart}`;
+        return '🔧 Scan Part Name';
+      };
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
+          <div className="max-w-2xl mx-auto">
+            
+            {/* Header with Session Info */}
+            <div className="bg-slate-800 rounded-lg shadow-xl p-6 mb-4 border border-slate-700">
+              <h1 className="text-3xl font-bold text-white mb-2">⚙️ Parts Tracker</h1>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-slate-400 text-sm">Technician: <span className="text-white font-semibold">{techName}</span></p>
+                  <p className="text-slate-400 text-sm">Station: <span className="text-white font-semibold">{station}</span></p>
+                </div>
+                <button
+                  onClick={onLogout}
+                  className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors text-sm"
+                >
+                  🚪 Log Out
+                </button>
+              </div>
+            </div>
+
+            {/* Current Prompt */}
+            <div className="bg-blue-900 border-2 border-blue-500 rounded-lg p-4 mb-4">
+              <p className="text-blue-100 text-lg font-semibold">{getCurrentPrompt()}</p>
+            </div>
+
+            {/* Status/Error Messages */}
+            {statusMessage && (
+              <div className={`${statusMessage.includes('⚠️') ? 'bg-red-900 border-red-500' : 'bg-green-900 border-green-500'} border rounded-lg p-3 mb-4`}>
+                <p className={`${statusMessage.includes('⚠️') ? 'text-red-100' : 'text-green-100'}`}>{statusMessage}</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-900 border border-red-500 rounded p-3 mb-4">
+                <p className="text-red-100 text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Scanner Input */}
+            <div className="bg-slate-800 rounded-lg shadow-xl p-6 mb-4 border border-slate-700">
+              <input
+                ref={inputRef}
+                type="text"
+                value={scanInput}
+                onChange={(e) => setScanInput(e.target.value)}
+                onKeyDown={handleScan}
+                placeholder={
+                  !machineSerial ? "Scan serial number..." :
+                  awaitingQuantity ? "Enter quantity..." :
+                  "Scan part name..."
+                }
+                className="w-full p-3 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg mb-3"
+                autoFocus
+              />
+              
+              {/* Quick action buttons */}
+              {!machineSerial && (
+                <button
+                  onClick={() => {
+                    setMachineSerial('SN Missing or Damaged');
+                    setStatusMessage('Serial marked as missing/damaged. Scan parts.');
+                    setTimeout(() => setStatusMessage(''), 2000);
+                  }}
+                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-4 rounded transition-colors"
+                >
+                  SN Missing or Damaged
+                </button>
+              )}
+
+              {machineSerial && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={restartMachine}
+                    className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded transition-colors text-sm"
+                  >
+                    🔄 Restart Machine
+                  </button>
+                  {parts.length > 0 && (
+                    <button
+                      onClick={handleSubmit}
+                      disabled={isSubmitting}
+                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition-colors text-sm"
+                    >
+                      {isSubmitting ? 'Submitting...' : '✓ Submit Machine'}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Machine Serial Display */}
+            {machineSerial && (
+              <div className="bg-slate-800 rounded-lg shadow-xl p-4 mb-4 border border-slate-700">
+                <label className="text-slate-400 text-sm">Machine Serial</label>
+                <p className="text-white text-xl font-semibold">{machineSerial}</p>
+              </div>
+            )}
+
+            {/* Parts List */}
+            {parts.length > 0 && (
+              <div className="bg-slate-800 rounded-lg shadow-xl p-6 mb-4 border border-slate-700">
+                <h3 className="text-white font-semibold mb-4">Parts List ({parts.length})</h3>
+                <div className="space-y-3">
+                  {parts.map((part) => (
+                    <div key={part.id} className="bg-slate-700 rounded p-4 flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="text-white font-semibold">{part.part}</p>
+                        <p className="text-slate-300 text-sm">Qty: {part.quantity}</p>
+                      </div>
+                      <button
+                        onClick={() => removePart(part.id)}
+                        className="text-red-400 hover:text-red-300 p-2 text-xl"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      );
+    }
+
+    // ============================================================================
+    // MAIN APP COMPONENT
+    // ============================================================================
+    
+    function PartsTracker() {
+      const [isAuthenticated, setIsAuthenticated] = useState(false);
+      const [sessionReady, setSessionReady] = useState(false);
+      const [station, setStation] = useState('');
+      const [techName, setTechName] = useState('');
+
+      const handleLogin = () => {
+        setIsAuthenticated(true);
+      };
+
+      const handleSessionReady = (selectedStation, selectedTechName) => {
+        setStation(selectedStation);
+        setTechName(selectedTechName);
+        setSessionReady(true);
+      };
+
+      const handleLogout = () => {
+        setIsAuthenticated(false);
+        setSessionReady(false);
+        setStation('');
+        setTechName('');
+      };
+
+      // Step 1: Login
+      if (!isAuthenticated) {
+        return <LoginScreen onLogin={handleLogin} />;
+      }
+
+      // Step 2: Session Setup (Name + Station)
+      if (!sessionReady) {
+        return <SessionSetup onSessionReady={handleSessionReady} />;
+      }
+
+      // Step 3: Machine Entry (loops per machine)
+      return <MachineEntry station={station} techName={techName} onLogout={handleLogout} />;
+    }
+
+    // ============================================================================
+    // RENDER APP
+    // ============================================================================
+    
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<PartsTracker />);
+  </script>
+</body>
+</html>
