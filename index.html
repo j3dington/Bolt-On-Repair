@@ -20,7 +20,7 @@
     // ============================================================================
     
     const SITE_PASSWORD = 'CompassTesting2025!';
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMtoN6T61-FQU9fft9BQ0MIfjuHjl855UcBimt8lnZZmh6QFYdhhFPRRRIFhFF0WvBdw/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbykcqpgvfD2Y2FOIYY9dILBWJmmKT_hcKlou1YvKUlKdKvuaBIpNNBk1tVIDRygRUAYVg/exec';
 
     // Valid parts that can be scanned
     const VALID_PARTS = [
@@ -106,10 +106,10 @@
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
       
-      oscillator.frequency.value = 800;
+      oscillator.frequency.value = 1200;
       oscillator.type = 'sine';
       
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.7, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
       
       oscillator.start(audioContext.currentTime);
@@ -124,10 +124,10 @@
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
       
-      oscillator.frequency.value = 300;
-      oscillator.type = 'sine';
+      oscillator.frequency.value = 200;
+      oscillator.type = 'triangle';
       
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.7, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
       
       oscillator.start(audioContext.currentTime);
@@ -160,55 +160,81 @@
       const handleSubmit = (e) => {
         e.preventDefault();
         if (password === SITE_PASSWORD) {
+          playSuccessSound();
           onLogin();
         } else {
           setError('Incorrect password. Try again.');
+          playErrorSound();
           setPassword('');
         }
       };
 
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-lg shadow-2xl p-8 w-full max-w-md border border-slate-700">
-            <div className="text-center mb-6">
-              <h1 className="text-3xl font-bold text-white mb-2">🔒 Parts Tracker</h1>
-              <p className="text-slate-400">Enter password to access</p>
-            </div>
-            
-            <form onSubmit={handleSubmit}>
+    // Changed background to slate-950 for a deeper, premium dark look
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+      
+      {/* Added a subtle blue glow behind the card for atmosphere */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-900/20 rounded-full blur-3xl"></div>
+      </div>
+
+      {/* The Main Card: Glass-like effect with backdrop-blur */}
+      <div className="relative z-10 w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+        
+        {/* Header Section */}
+        <div className="p-8 pb-0 text-center">
+          <div className="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
+            <span className="text-3xl">🔒</span>
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-wide mb-2 uppercase">Parts Tracker</h1>
+          <p className="text-slate-400 text-sm">Authorized Personnel Only</p>
+        </div>
+        
+        {/* Form Section */}
+        <div className="p-8">
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6 relative">
+              {/* Input with a "Focus Ring" - lights up blue when clicked */}
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full p-4 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg mb-4"
+                placeholder="Scan or Enter Password"
+                className="w-full bg-slate-950 border border-slate-800 text-white text-lg rounded-xl p-4 pl-5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-slate-600 shadow-inner"
                 autoFocus
               />
-              
-              {error && (
-                <div className="bg-red-900 border border-red-500 rounded p-3 mb-4">
-                  <p className="text-red-100 text-sm">{error}</p>
-                </div>
-              )}
-              
-              <button
-                type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-4 rounded transition-colors text-lg"
-              >
-                🔓 Unlock Tracker
-              </button>
-            </form>
-          </div>
+            </div>
+            
+            {error && (
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg flex items-center gap-3">
+                <span className="text-red-400">⚠️</span>
+                <p className="text-red-200 text-sm">{error}</p>
+              </div>
+            )}
+            
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-4 px-6 rounded-xl transition-all shadow-[0_0_20px_-5px_rgba(37,99,235,0.5)] hover:shadow-[0_0_25px_-5px_rgba(37,99,235,0.7)]"
+            >
+              ACCESS SYSTEM
+            </button>
+          </form>
         </div>
-      );
-    }
-
+        
+        {/* Footer decoration */}
+        <div className="bg-slate-950/50 p-4 text-center border-t border-slate-800">
+          <p className="text-slate-600 text-xs">SECURE CONNECTION • COMPASS MINING</p>
+        </div>
+      </div>
+    </div>
+  );
+}
     // ============================================================================
     // SESSION SETUP COMPONENT
     // Handles: Tech Name → Station selection (both locked for session)
     // ============================================================================
     
-    function SessionSetup({ onSessionReady }) {
+    function SessionSetup({ onSessionReady, validNames }) {
       const [techName, setTechName] = useState('');
       const [station, setStation] = useState('');
       const [scanInput, setScanInput] = useState('');
@@ -226,52 +252,40 @@
           e.preventDefault();
           const value = scanInput.trim();
           
-         // Step 1: Scan tech name (starts with $)
+          // Step 1: Scan tech name (Direct match, no $ needed)
           if (!techName) {
-            if (value.startsWith('$')) {
-              // Remove leading $ and trailing $ if present
-              let scannedName = value.substring(1).trim();
-              if (scannedName.endsWith('$')) {
-                scannedName = scannedName.slice(0, -1).trim();
-              }
+            // Check if the scanned text matches ANY name in our list (case-insensitive)
+            const matchingName = validNames.find(
+                validName => validName.toLowerCase() === value.toLowerCase()
+            );
               
-              console.log('Extracted name:', scannedName);
-              
-              // Find matching name (case-insensitive)
-              const matchingName = VALID_NAMES.find(
-                validName => validName.toLowerCase() === scannedName.toLowerCase()
-              );
-              
-              if (matchingName) {
+            if (matchingName) {
                 setTechName(matchingName);
                 setScanInput('');
                 setError('');
                 playSuccessSound();
-              } else {
-                setError(`Invalid name "${scannedName}". Valid: ${VALID_NAMES.join(', ')}`);
+            } else {
+                // If it's not a name, check if they accidentally scanned a station code
+                if (['Bolt- On 1', '1', 'Bolt- On 2', '2'].includes(value)) {
+                    setError('Please scan your Name Badge first.');
+                } else {
+                    setError(`Unknown Name: "${value}". Check spelling or sheet.`);
+                }
                 setScanInput('');
                 playErrorSound();
-              }
-            } else {
-              setError('Scan a name with $ (e.g., $Josh or $Josh$)');
-              setScanInput('');
-              playErrorSound();
             }
           }
-          // Step 2: Scan station QR code or type 1/2
+          
+          // Step 2: Scan station (Logic remains the same)
           else if (!station) {
-            if (value === 'Bolt-On 1' || value === '1') {
-              setStation('Bolt-On 1');
+            if (['Bolt- On 1', '1', 'Bolt- On 2', '2'].includes(value)) {
+              const stationName = (value === '1' || value === 'Bolt- On 1') ? 'Bolt- On 1' : 'Bolt- On 2';
+              setStation(stationName);
               setScanInput('');
               playSuccessSound();
-              setTimeout(() => onSessionReady('Bolt-On 1', techName), 500);
-            } else if (value === 'Bolt-On 2' || value === '2') {
-              setStation('Bolt-On 2');
-              setScanInput('');
-              playSuccessSound();
-              setTimeout(() => onSessionReady('Bolt-On 2', techName), 500);
+              setTimeout(() => onSessionReady(stationName, techName), 500);
             } else {
-              setError('Invalid station. Scan QR code or type 1 or 2');
+              setError('Invalid station. Scan QR or type 1 or 2');
               setScanInput('');
               playErrorSound();
             }
@@ -280,113 +294,130 @@
       };
 
       const getCurrentPrompt = () => {
-        if (!techName) return '👤 Scan Your Name (e.g., $Josh)';
-        if (!station) return '🏭 Scan Station QR Code';
-        return 'Setting up session...';
+        if (!techName) return 'Identify Technician';
+        if (!station) return 'Select Workstation';
+        return 'Initializing...';
       };
 
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center p-4">
-          <div className="bg-slate-800 rounded-lg shadow-2xl p-8 w-full max-w-md border border-slate-700">
-            <div className="text-center mb-6">
-              <h1 className="text-3xl font-bold text-white mb-2">⚙️ Session Setup</h1>
-              <p className="text-slate-400">Set up your work session</p>
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 relative overflow-hidden">
+          
+          {/* Background Ambience */}
+          <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-900/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-900/10 rounded-full blur-3xl"></div>
+          </div>
+
+          <div className="relative z-10 w-full max-w-lg bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+            
+            {/* Header */}
+            <div className="p-8 pb-4 border-b border-slate-800/50">
+              <div className="flex items-center justify-between mb-2">
+                <h1 className="text-xl font-bold text-white tracking-wider uppercase">Session Setup</h1>
+                <div className="flex gap-2">
+                  <div className={`w-3 h-3 rounded-full ${techName ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-slate-700'}`}></div>
+                  <div className={`w-3 h-3 rounded-full ${station ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-slate-700'}`}></div>
+                </div>
+              </div>
+              <p className="text-blue-400 font-medium">{getCurrentPrompt()}</p>
             </div>
 
-            <div className="bg-blue-900 border-2 border-blue-500 rounded-lg p-4 mb-4">
-              <p className="text-blue-100 text-lg font-semibold text-center">{getCurrentPrompt()}</p>
+            <div className="p-8">
+              {/* Active Technician Display */}
+              {techName && (
+                <div className="mb-6 flex items-center gap-4 p-4 bg-slate-950/50 rounded-xl border border-slate-800">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-white">
+                    {techName[0]}
+                  </div>
+                  <div>
+                    <p className="text-slate-400 text-xs uppercase tracking-wider">Technician</p>
+                    <p className="text-white font-semibold">{techName}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Scanner Input */}
+              <div className="relative mb-6">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={scanInput}
+                  onChange={(e) => setScanInput(e.target.value)}
+                  onKeyDown={handleScan}
+                  // Updated Placeholder: No more $ sign instruction
+                  placeholder={!techName ? "Scan Name Badge..." : "Scan Station QR"}
+                  className="w-full bg-slate-950 border border-slate-700 text-white text-lg rounded-xl p-4 pl-5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner"
+                  autoFocus
+                />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600">
+                  ⚡
+                </div>
+              </div>
+
+              {/* Error Message */}
+              {error && (
+                <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                  <p className="text-red-400 text-sm flex items-center gap-2">
+                    <span>🚫</span> {error}
+                  </p>
+                </div>
+              )}
+
+              {/* Manual Selection Buttons (Only show when tech is selected but station isn't) */}
+              {techName && !station && (
+                <div className="grid grid-cols-2 gap-4">
+                  {['Bolt- On 1', 'Bolt- On 2'].map((st) => (
+                    <button
+                      key={st}
+                      onClick={() => {
+                        setStation(st);
+                        playSuccessSound();
+                        setTimeout(() => onSessionReady(st, techName), 500);
+                      }}
+                      className="bg-slate-800 hover:bg-blue-600 hover:border-blue-500 text-slate-300 hover:text-white border border-slate-700 py-4 px-4 rounded-xl transition-all font-medium duration-300 group"
+                    >
+                      <span className="block text-xs text-slate-500 group-hover:text-blue-200 mb-1">STATION</span>
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-
-            {error && (
-              <div className="bg-red-900 border border-red-500 rounded p-3 mb-4">
-                <p className="text-red-100 text-sm">{error}</p>
-              </div>
-            )}
-
-            {techName && (
-              <div className="bg-green-900 border border-green-500 rounded p-3 mb-4">
-                <p className="text-green-100 text-sm">✓ Technician: <span className="font-semibold">{techName}</span></p>
-              </div>
-            )}
-
-            <input
-              ref={inputRef}
-              type="text"
-              value={scanInput}
-              onChange={(e) => setScanInput(e.target.value)}
-              onKeyDown={handleScan}
-              placeholder="Scan here..."
-              className="w-full p-4 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg mb-4"
-              autoFocus
-            />
-
-            {techName && !station && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setStation('Bolt-On 1');
-                    playSuccessSound();
-                    setTimeout(() => onSessionReady('Bolt-On 1', techName), 500);
-                  }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded transition-colors"
-                >
-                  Bolt-On 1
-                </button>
-                <button
-                  onClick={() => {
-                    setStation('Bolt-On 2');
-                    playSuccessSound();
-                    setTimeout(() => onSessionReady('Bolt-On 2', techName), 500);
-                  }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded transition-colors"
-                >
-                  Bolt-On 2
-                </button>
-              </div>
-            )}
           </div>
         </div>
       );
     }
-
     // ============================================================================
     // MACHINE ENTRY COMPONENT
     // Handles: Serial → Parts → Submit (loops per machine)
     // ============================================================================
     
-    function MachineEntry({ station, techName, onLogout }) {
-      // Machine-specific state (resets after each submit)
+    function MachineEntry({ station, techName, onLogout, validParts }) {
       const [machineSerial, setMachineSerial] = useState('');
-      const [parts, setParts] = useState([]);
-      const [scanInput, setScanInput] = useState('');
-      
-      // Temporary state for quantity input
-      const [awaitingQuantity, setAwaitingQuantity] = useState(false);
-      const [pendingPart, setPendingPart] = useState('');
-      
-      const [error, setError] = useState('');
-      const [statusMessage, setStatusMessage] = useState('');
-      const [isSubmitting, setIsSubmitting] = useState(false);
-      
-      const inputRef = useRef(null);
+  const [parts, setParts] = useState([]);
+  const [scanInput, setScanInput] = useState('');
+  const [awaitingQuantity, setAwaitingQuantity] = useState(false);
+  const [pendingPart, setPendingPart] = useState('');
+  const [error, setError] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const inputRef = useRef(null);
+  const [suggestions, setSuggestions] = useState([]);
 
-      useEffect(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-        }
-      }, [machineSerial, awaitingQuantity]);
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.focus();
+  }, [machineSerial, awaitingQuantity]);
 
-      const handleScan = (e) => {
-        if (e.key === 'Enter') {
+  const handleScan = (e) => {
+      if (e.key === 'Enter') {
           e.preventDefault();
           const value = scanInput.trim();
           
-          // Step 1: Scan machine serial
           if (!machineSerial) {
             if (value.length > 0) {
               setMachineSerial(value);
               setScanInput('');
-              setStatusMessage('Serial recorded! Scan parts.');
+              setStatusMessage('Serial recorded');
               playSuccessSound();
               setTimeout(() => setStatusMessage(''), 2000);
             } else {
@@ -394,11 +425,10 @@
               playErrorSound();
             }
           }
-          // Step 2: Handle quantity input (if waiting for one)
           else if (awaitingQuantity) {
             const qty = parseInt(value);
             if (isNaN(qty) || qty < 1) {
-              setError('Please enter a valid quantity (number > 0)');
+              setError('Enter valid quantity');
               setScanInput('');
               playErrorSound();
             } else {
@@ -409,65 +439,83 @@
               playSuccessSound();
             }
           }
-          // Step 3: Scan parts
           else {
-            if (isValidPart(value)) {
-              if (needsQuantity(value)) {
-                // Ask for quantity
-                setPendingPart(value);
+            const matchedPart = validParts.find(p => p.toLowerCase() === value.toLowerCase());
+            if (matchedPart) {
+              if (needsQuantity(matchedPart)) {
+                setPendingPart(matchedPart);
                 setAwaitingQuantity(true);
                 setScanInput('');
                 setError('');
               } else {
-                // Auto-add with qty 1
-                addPartToList(value, 1);
+                addPartToList(matchedPart, 1);
                 setScanInput('');
                 playSuccessSound();
               }
             } else {
-              setError(`Invalid part. Not in parts list.`);
+              setError(`Invalid part: ${value}`);
               setScanInput('');
               playErrorSound();
             }
           }
         }
-      };
+  };
 
-      const addPartToList = (partName, quantity) => {
-        const newPart = {
-          id: Date.now(),
-          part: partName,
-          quantity: quantity
-        };
-        setParts([...parts, newPart]);
-        setStatusMessage(`Added: ${partName} (${quantity})`);
-        setTimeout(() => setStatusMessage(''), 2000);
-      };
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setScanInput(value);
 
-      const removePart = (id) => {
+    // Only search if we are looking for a Part
+    if (machineSerial && !awaitingQuantity) {
+      // Use YOUR function here!
+      const matches = validParts.filter(part => 
+        part.toLowerCase().includes(value.toLowerCase())
+      );
+      setSuggestions(value ? matches : []);
+    } else {
+      setSuggestions([]);
+    }
+  };
+  
+  const addPartToList = (partName, quantity) => {
+    const newPart = { id: Date.now(), part: partName, quantity: quantity };
+    setParts([...parts, newPart]);
+    setStatusMessage(`Added: ${partName}`);
+    setTimeout(() => setStatusMessage(''), 2000);
+  };
+  
+  const removePart = (id) => {
         setParts(parts.filter(p => p.id !== id));
-      };
+  };
 
-      const restartMachine = () => {
+  const getSuggestions = (searchTerm, allParts) => {
+  // If they haven't typed anything, show nothing
+  if (!searchTerm) return [];
+
+  return allParts.filter((partName) => {
+    return partName.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+};
+  const restartMachine = () => {
         setMachineSerial('');
         setParts([]);
         setScanInput('');
         setAwaitingQuantity(false);
         setPendingPart('');
         setError('');
-        setStatusMessage('Machine cleared. Scan new serial.');
+        setStatusMessage('Machine cleared');
         setTimeout(() => setStatusMessage(''), 2000);
-      };
+  };
 
-      const handleSubmit = async () => {
+  const handleSubmit = async () => {
         if (!machineSerial || parts.length === 0) {
-          setError('Need serial and at least one part to submit');
+          setError('Need serial and parts');
           playErrorSound();
           return;
         }
 
         setIsSubmitting(true);
-        setStatusMessage('Submitting to Google Sheets...');
+        setStatusMessage('Submitting...');
 
         const submissionData = {
           secretKey: SITE_PASSWORD,
@@ -482,16 +530,12 @@
           const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(submissionData)
           });
 
-          setStatusMessage('✓ Submitted! Starting next machine...');
+          setStatusMessage('Success');
           playSuccessSound();
-          
-          // Reset for next machine
           setTimeout(() => {
             setMachineSerial('');
             setParts([]);
@@ -504,156 +548,231 @@
           }, 1500);
 
         } catch (error) {
-          console.error('Submission error:', error);
-          setStatusMessage('⚠️ Error submitting. Check console.');
+          setStatusMessage('Error submitting');
           setIsSubmitting(false);
           playErrorSound();
         }
-      };
+  };
 
-      const getCurrentPrompt = () => {
-        if (!machineSerial) return '📱 Scan Machine Serial Number';
-        if (awaitingQuantity) return `🔢 Enter Quantity for: ${pendingPart}`;
-        return '🔧 Scan Part Name';
-      };
 
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
-          <div className="max-w-2xl mx-auto">
-            
-            {/* Header with Session Info */}
-            <div className="bg-slate-800 rounded-lg shadow-xl p-6 mb-4 border border-slate-700">
-              <h1 className="text-3xl font-bold text-white mb-2">⚙️ Parts Tracker</h1>
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-slate-400 text-sm">Technician: <span className="text-white font-semibold">{techName}</span></p>
-                  <p className="text-slate-400 text-sm">Station: <span className="text-white font-semibold">{station}</span></p>
-                </div>
-                <button
-                  onClick={onLogout}
-                  className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors text-sm"
-                >
-                  🚪 Log Out
-                </button>
-              </div>
+  return (
+    <div className="min-h-screen bg-slate-950 p-4 lg:p-8 font-sans text-slate-300">
+      
+      {/* Top Navbar */}
+      <div className="max-w-4xl mx-auto flex justify-between items-center mb-8 bg-slate-900/50 backdrop-blur border border-slate-800 p-4 rounded-xl">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+            PT
+          </div>
+          <div>
+            <h1 className="text-white font-bold leading-none tracking-wide">PARTS TRACKER</h1>
+            <div className="flex gap-3 text-xs mt-1">
+              <span className="text-blue-400">TECH: {techName}</span>
+              <span className="text-slate-600">|</span>
+              <span className="text-blue-400">STN: {station}</span>
             </div>
+          </div>
+        </div>
+        <button onClick={onLogout} className="text-xs font-semibold text-slate-500 hover:text-red-400 transition-colors uppercase tracking-wider">
+          Log Out
+        </button>
+      </div>
 
-            {/* Current Prompt */}
-            <div className="bg-blue-900 border-2 border-blue-500 rounded-lg p-4 mb-4">
-              <p className="text-blue-100 text-lg font-semibold">{getCurrentPrompt()}</p>
-            </div>
+      <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* LEFT COLUMN: Input & Controls */}
+        <div className="md:col-span-2 space-y-6">
+          
+          {/* Main Scanner Card */}
+          <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-6 rounded-2xl shadow-xl relative z-20">
+             {/* Glowing border effect on top */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600 opacity-50 rounded-t-2xl"></div>
 
-            {/* Status/Error Messages */}
-            {statusMessage && (
-              <div className={`${statusMessage.includes('⚠️') ? 'bg-red-900 border-red-500' : 'bg-green-900 border-green-500'} border rounded-lg p-3 mb-4`}>
-                <p className={`${statusMessage.includes('⚠️') ? 'text-red-100' : 'text-green-100'}`}>{statusMessage}</p>
-              </div>
-            )}
-
-            {error && (
-              <div className="bg-red-900 border border-red-500 rounded p-3 mb-4">
-                <p className="text-red-100 text-sm">{error}</p>
-              </div>
-            )}
-
-            {/* Scanner Input */}
-            <div className="bg-slate-800 rounded-lg shadow-xl p-6 mb-4 border border-slate-700">
-              <input
+            <div className="mb-6">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 block">
+                {machineSerial ? 'Scanning Parts' : 'Active Input'}
+              </label>
+              <div className="relative">
+                <input
                 ref={inputRef}
                 type="text"
                 value={scanInput}
-                onChange={(e) => setScanInput(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={handleScan}
-                placeholder={
-                  !machineSerial ? "Scan serial number..." :
-                  awaitingQuantity ? "Enter quantity..." :
-                  "Scan part name..."
-                }
-                className="w-full p-3 bg-slate-700 border border-slate-600 rounded text-white placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none text-lg mb-3"
+                placeholder={!machineSerial ? "Scan Machine Serial..." : awaitingQuantity ? "Enter Quantity..." : "Scan Part..."}
+                className="w-full bg-slate-950 border border-slate-700 text-white text-2xl font-mono rounded-xl p-5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-inner placeholder-slate-700"
                 autoFocus
               />
-              
-              {/* Quick action buttons */}
-              {!machineSerial && (
-                <button
-                  onClick={() => {
-                    setMachineSerial('SN Missing or Damaged');
-                    setStatusMessage('Serial marked as missing/damaged. Scan parts.');
-                    setTimeout(() => setStatusMessage(''), 2000);
-                  }}
-                  className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-4 rounded transition-colors"
-                >
-                  SN Missing or Damaged
-                </button>
-              )}
-
-              {machineSerial && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={restartMachine}
-                    className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded transition-colors text-sm"
-                  >
-                    🔄 Restart Machine
-                  </button>
-                  {parts.length > 0 && (
-                    <button
-                      onClick={handleSubmit}
-                      disabled={isSubmitting}
-                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition-colors text-sm"
+              {/* The Suggestions Dropdown */}
+              {suggestions.length > 0 && (
+                <div className="absolute z-50 w-full mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                  {suggestions.map((part, index) => (
+                    <div 
+                      key={index}
+                      onClick={() => {
+                        // When clicked, auto-fill the input and trigger the scan logic
+                        setScanInput(part);
+                        setSuggestions([]);
+                        // Optional: We could auto-submit here if we want
+                        inputRef.current.focus(); 
+                      }}
+                      className="p-3 hover:bg-blue-600/20 hover:text-blue-200 cursor-pointer border-b border-slate-800 last:border-0 text-slate-300 transition-colors"
                     >
-                      {isSubmitting ? 'Submitting...' : '✓ Submit Machine'}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Machine Serial Display */}
-            {machineSerial && (
-              <div className="bg-slate-800 rounded-lg shadow-xl p-4 mb-4 border border-slate-700">
-                <label className="text-slate-400 text-sm">Machine Serial</label>
-                <p className="text-white text-xl font-semibold">{machineSerial}</p>
-              </div>
-            )}
-
-            {/* Parts List */}
-            {parts.length > 0 && (
-              <div className="bg-slate-800 rounded-lg shadow-xl p-6 mb-4 border border-slate-700">
-                <h3 className="text-white font-semibold mb-4">Parts List ({parts.length})</h3>
-                <div className="space-y-3">
-                  {parts.map((part) => (
-                    <div key={part.id} className="bg-slate-700 rounded p-4 flex justify-between items-start">
-                      <div className="flex-1">
-                        <p className="text-white font-semibold">{part.part}</p>
-                        <p className="text-slate-300 text-sm">Qty: {part.quantity}</p>
-                      </div>
-                      <button
-                        onClick={() => removePart(part.id)}
-                        className="text-red-400 hover:text-red-300 p-2 text-xl"
-                      >
-                        ✕
-                      </button>
+                      {part}
                     </div>
                   ))}
                 </div>
+              )}
+            </div>
+            
+              <p className="text-right text-xs text-slate-600 mt-2 font-mono">
+                {awaitingQuantity ? 'QUANTITY REQUIRED' : 'READY TO SCAN'}
+              </p>
+            </div>
+
+             {/* Dynamic Status / Error Display */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-4 animate-pulse">
+                <p className="text-red-400 font-medium flex items-center gap-2">⚠️ {error}</p>
+              </div>
+            )}
+            
+            {statusMessage && !error && (
+              <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-4">
+                <p className="text-green-400 font-medium">✓ {statusMessage}</p>
               </div>
             )}
 
+            {/* Action Buttons */}
+            {!machineSerial ? (
+              <button
+                onClick={() => setMachineSerial('SN-MISSING')}
+                className="w-full py-4 rounded-xl border border-dashed border-slate-700 text-slate-500 hover:text-white hover:border-slate-500 hover:bg-slate-800 transition-all"
+              >
+                No Serial Number Found?
+              </button>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={restartMachine}
+                  className="py-3 px-4 rounded-xl bg-red-800 text-white-400 hover:text-white hover:bg-red-700 border border-slate-700 transition-all font-medium"
+                >
+                  Reset Machine
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || parts.length === 0}
+                  className={`py-3 px-4 rounded-xl font-bold text-white shadow-lg transition-all
+                    ${parts.length > 0 
+                      ? 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20' 
+                      : 'bg-slate-800 text-slate-600 cursor-not-allowed'}
+                  `}
+                >
+                  {isSubmitting ? 'Uploading...' : 'Submit Entry'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      );
-    }
+
+        {/* RIGHT COLUMN: Info & List */}
+        <div className="space-y-6">
+          
+          {/* Machine Info Card */}
+          <div className="bg-slate-900/80 backdrop-blur border border-slate-800 p-6 rounded-2xl shadow-lg">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Current Unit</h3>
+            <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 mb-2">
+              <span className="block text-xs text-slate-600 mb-1">SERIAL NUMBER</span>
+              <span className="block text-xl text-white font-mono break-all">
+                {machineSerial || 'WAITING...'}
+              </span>
+            </div>
+            {machineSerial && (
+              <div className="flex gap-2 items-center justify-center mt-4">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span className="text-xs text-green-500 font-medium">Tracking Active</span>
+              </div>
+            )}
+          </div>
+
+          {/* Parts List Card */}
+          <div className="bg-slate-900/80 backdrop-blur border border-slate-800 p-6 rounded-2xl shadow-lg min-h-[300px]">
+            <div className="flex justify-between items-end mb-4">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Parts Replaced</h3>
+              <span className="text-xs bg-blue-900/30 text-blue-400 px-2 py-1 rounded border border-blue-500/20">
+                {parts.length} Items
+              </span>
+            </div>
+            
+            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+              {parts.length === 0 ? (
+                <div className="text-center py-10 opacity-30">
+                  <div className="text-4xl mb-2">📦</div>
+                  <p className="text-sm">No parts scanned</p>
+                </div>
+              ) : (
+                parts.map((part) => (
+                  <div key={part.id} className="group flex justify-between items-center p-3 bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-600 rounded-lg transition-all">
+                    <div>
+                      <p className="text-white text-sm font-medium">{part.part}</p>
+                      <p className="text-xs text-slate-500">Qty: {part.quantity}</p>
+                    </div>
+                    <button
+                      onClick={() => removePart(part.id)}
+                      className="opacity-0 group-hover:opacity-100 p-2 text-slate-500 hover:text-red-400 transition-all"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
 
     // ============================================================================
     // MAIN APP COMPONENT
     // ============================================================================
     
     function PartsTracker() {
+      // STATE VARIABLES
       const [isAuthenticated, setIsAuthenticated] = useState(false);
       const [sessionReady, setSessionReady] = useState(false);
+      const [validNames, setValidNames] = useState([]);
+      const [validParts, setValidParts] = useState([]);
+      const [isLoading, setIsLoading] = useState(true);
       const [station, setStation] = useState('');
       const [techName, setTechName] = useState('');
 
+      // FETCH
+      useEffect(() => {
+        const fetchData = async () => {
+          try {
+            console.log("Fetching data from Google...");
+            const response = await fetch(GOOGLE_SCRIPT_URL);
+            const data = await response.json();
+            console.log("Data received:", data);
+
+            if (data.names) setValidNames(data.names);
+            if (data.parts) setValidParts(data.parts);
+            
+          } catch (error) {
+            console.error("Failed to fetch config", error);
+            alert("Could not load configuration. Check console.");
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        fetchData();
+      }, []);
+
+      // HANDLERS 
       const handleLogin = () => {
         setIsAuthenticated(true);
       };
@@ -671,23 +790,35 @@
         setTechName('');
       };
 
-      // Step 1: Login
+      // RENDER
+      if (isLoading) {
+        return (
+          <div className="min-h-screen bg-slate-950 flex items-center justify-center text-blue-500">
+            <div className="text-center">
+              <div className="text-4xl animate-spin mb-4">⚙️</div>
+              <p className="animate-pulse">Connecting to Server...</p>
+            </div>
+          </div>
+        );
+      }
+
       if (!isAuthenticated) {
         return <LoginScreen onLogin={handleLogin} />;
       }
 
-      // Step 2: Session Setup (Name + Station)
       if (!sessionReady) {
-        return <SessionSetup onSessionReady={handleSessionReady} />;
+        return <SessionSetup onSessionReady={handleSessionReady} validNames={validNames} />;
       }
 
-      // Step 3: Machine Entry (loops per machine)
-      return <MachineEntry station={station} techName={techName} onLogout={handleLogout} />;
+      return (
+        <MachineEntry 
+          station={station} 
+          techName={techName} 
+          onLogout={handleLogout}
+          validParts={validParts}
+        />
+      );
     }
-
-    // ============================================================================
-    // RENDER APP
-    // ============================================================================
     
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<PartsTracker />);
