@@ -20,51 +20,9 @@
     // ============================================================================
     
     const SITE_PASSWORD = 'CompassTesting2025!';
-    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbykcqpgvfD2Y2FOIYY9dILBWJmmKT_hcKlou1YvKUlKdKvuaBIpNNBk1tVIDRygRUAYVg/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwAJX4mKGBR65EKNG6wXu2ZOnVcRlF8OVprmWMZY6efdxdsQbHTf9ahbhLyJS2KSfVOVg/exec';
 
-    // Valid parts that can be scanned
-    const VALID_PARTS = [
-      'Beagle Bone Control Boards',
-      'AM Logic Control Boards',
-      'Xilinx 7007 Control Boards',
-      '4V 10 Control Boards',
-      '6V10 Control Boards',
-      'APW 12 PSU',
-      'APW 121215 a PSU',
-      'APW 121215 b PSU',
-      'APW 121215 c PSU',
-      'APW 121215 d PSU',
-      'APW 121215 e PSU',
-      'APW 121215 f PSU',
-      'APW 121417 a PSU',
-      'APW 121417 b PSU',
-      'AM Hashboard Ribbon Cable',
-      'WM Adapter Plate Cables',
-      'Fan Adapter Cables',
-      'Fan Extention Cables',
-      'AM PSU Power Cables',
-      'AM PSU Data/ Cables',
-      'PSU Fan Grill Screws',
-      'Miner Fan Grill Screws - silver',
-      'Miner Fan Grill Screws - black',
-      'Bus Bar Screws',
-      'Small Miner Screws',
-      'Chassis Screws',
-      '60 mm Fans',
-      '120mm Fans 4 pin (Antminer)',
-      '120mm Fans Barrel (Antminer)',
-      '140 mm Fans (Whatsminer)',
-      'S21 Fans',
-      'WM P222B',
-      'WM P221B',
-      'WM P221C',
-      'WM P222C',
-      '120mm Fan Grills (Black)',
-      '140mm Fan Grills (Silver)',
-      '140mm Fan Grills (Black)',
-      '60mm Fan Grills',
-      'PSU Universal'
-    ];
+
 
     // Parts that need quantity input (screws, fans, and smaller items)
     const PARTS_NEEDING_QUANTITY = [
@@ -75,21 +33,11 @@
       'Small Miner Screws',
       'Chassis Screws',
       '60 mm Fans',
-      '120mm Fans 4 pin (Antminer)',
+      'Fan- 120MM 4pin (Antminer S19)',
       '120mm Fans Barrel (Antminer)',
       '140 mm Fans (Whatsminer)',
     ];
 
-    // Valid technician names for submission
-    const VALID_NAMES = [
-      'James',
-      'Josh',
-      'Junior',
-      'Nikolai',
-      'Rafa',
-      'Kyle',
-      'Christian'
-    ];
 
     // ============================================================================
     // HELPER FUNCTIONS
@@ -520,7 +468,7 @@
         const submissionData = {
           secretKey: SITE_PASSWORD,
           station: station,
-          machineSerial: machineSerial,
+          serial: machineSerial,
           techName: techName,
           timestamp: new Date().toISOString(),
           parts: parts
